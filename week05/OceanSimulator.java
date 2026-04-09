@@ -1,12 +1,12 @@
+package week05;
 
 class MarineLife {
-
     protected String name;
     protected String habitat;
 
     public MarineLife(String name, String habitat) {
         this.name = name;
-        this.habitat = habitat + "";
+        this.habitat = habitat;
     }
 
     public String move() {
@@ -22,27 +22,69 @@ class MarineLife {
     }
 }
 
+
 class Shark extends MarineLife {
 
-    Shark(String name, String habitat) {
+    public Shark(String name, String habitat) {
         super(name, habitat);
     }
 
     @Override
     public String move() {
-        return name + "高速衝刺獵食";
+        return name + " 高速衝刺獵食";
     }
 
     @Override
     public String eat() {
-        return name + "高速衝刺獵食";
+        return name + " 撕咬獵物";
+    }
+}
+
+
+class Turtle extends MarineLife {
+
+    public Turtle(String name, String habitat) {
+        super(name, habitat);
+    }
+
+    @Override
+    public String move() {
+        return name + " 緩慢划動四肢";
+    }
+
+    @Override
+    public String eat() {
+        return name + " 啃食海草";
+    }
+}
+
+
+class Dolphin extends MarineLife {
+
+    public Dolphin(String name, String habitat) {
+        super(name, habitat);
+    }
+
+    @Override
+    public String move() {
+        return name + " 躍出水面再潛入";
+    }
+
+    @Override
+    public String eat() {
+        return name + " 合作圍捕魚群";
     }
 }
 
 public class OceanSimulator {
-
     public static void main(String[] args) {
-        MarineLife[] ocean = {new Shark("大白鯊", "深海")
+        System.out.println("=== 海洋模擬器 ===\n");
+
+        
+        MarineLife[] ocean = {
+            new Shark("大白鯊", "深海"),
+            new Turtle("綠蠵龜", "珊瑚礁"),
+            new Dolphin("瓶鼻海豚", "近海")
         };
 
         for (MarineLife creature : ocean) {
