@@ -71,7 +71,7 @@
 1. **加入追蹤**：`git add .`
 2. **提交版本**：`git commit -m "訊息"`（例如："完成第3週作業"）
 3. **推送到 GitHub**：`git push origin main`
-4. **發送 PR**：到 GitHub 網頁上發送 Pull Request (Contribute > Open pull request)。
-   * ⚠️ **PR 標題請務必統一格式**：`學號_姓名_week03`
+4. **首次繳交發 PR**：到 GitHub 網頁發 Pull Request (Contribute > Open pull request)。之後每週 push 即自動更新，不需再發 PR。
+   * ⚠️ **PR 標題請務必統一格式**：`學號_姓名`（一學期只需建立 2 次 PR：期中前 1 次、期中後 1 次）
 
-發送 PR 後，自動批改腳本會抓取內容進行評分，成績會自動貼到 PR 留言中！
+發送 PR 後，自動批改腳本會檢查內容，結果會自動貼到 PR 留言中！

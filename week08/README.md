@@ -1,7 +1,8 @@
-# W08 進階佈局與事件處理 ＋ 課後作業：海洋生物小百科 Mini APP
+# W08 進階佈局、事件處理、Activity 生命週期與 Intent
 
 > **APP 開發課程** ｜ 第 8 週 ｜ 4/16
 > **教科書**：Ch04 使用介面設計 ＋ Ch05 使用者互動設計
+> **補充教學**：Activity 生命週期、Intent 頁面跳轉與資料傳遞
 > **課後作業繳交期限**：W09 期中考前（4/23）
 
 ---
@@ -236,7 +237,362 @@ public class MainActivity extends AppCompatActivity
 
 ---
 
-## 四、課後作業：海洋生物小百科 Mini APP
+## 四、補充教學：Activity 生命週期與 Intent
+
+> PPT 涵蓋了 UI 佈局和事件處理，以下補充 Android 開發另外兩個核心概念。
+
+### 4-1 Activity 生命週期
+
+Activity 是 Android App 的「畫面單位」。你看到的每一個頁面，背後就是一個 Activity。
+
+Android 系統會自動管理 Activity 的「生」與「死」——建立、顯示、暫停、銷毀，每個階段都有對應的回呼方法。
+
+#### 七個生命週期回呼
+
+```
+        onCreate()
+            ↓
+        onStart()     ←─── onRestart()
+            ↓                   ↑
+        onResume()              │
+            ↓                   │
+      【使用者操作中】            │
+            ↓                   │
+        onPause()               │
+            ↓                   │
+        onStop()  ──────────────┘
+            ↓
+        onDestroy()
+```
+
+| 回呼 | 觸發時機 | 常見用途 |
+|------|---------|---------|
+| `onCreate()` | Activity 第一次建立 | 初始化畫面（`setContentView`）、綁定元件 |
+| `onStart()` | 畫面即將可見 | 開始動畫、註冊監聽器 |
+| `onResume()` | 畫面取得焦點，可互動 | 恢復暫停的播放、啟動感測器 |
+| `onPause()` | 畫面失去焦點（部分遮擋） | 暫停影片、儲存草稿 |
+| `onStop()` | 畫面完全不可見 | 釋放資源、取消註冊 |
+| `onRestart()` | 從 Stop 回到前景 | 重新載入資料 |
+| `onDestroy()` | Activity 即將銷毀 | 最終清理 |
+
+> 你已經一直在用 `onCreate()` 了！現在知道它只是七個生命週期方法中的第一個。
+
+#### 常見場景對照
+
+| 使用者操作 | 觸發的回呼順序 |
+|-----------|--------------|
+| 開啟 App | `onCreate → onStart → onResume` |
+| 按 Home 鍵 | `onPause → onStop` |
+| 從最近列表回來 | `onRestart → onStart → onResume` |
+| 按返回鍵離開 | `onPause → onStop → onDestroy` |
+| A 頁跳到 B 頁 | A: `onPause` → B: `onCreate → onStart → onResume` → A: `onStop` |
+| 從 B 返回 A | B: `onPause` → A: `onRestart → onStart → onResume` → B: `onStop → onDestroy` |
+
+#### 程式碼範例：用 Log 追蹤生命週期
+
+在任何 Activity 中加入以下程式碼，就能在 Logcat 觀察生命週期：
+
+```java
+public class MainActivity extends AppCompatActivity {
+    private static final String TAG = "LifecycleDemo";
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        Log.d(TAG, ">>> onCreate");
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Log.d(TAG, ">>> onStart");
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.d(TAG, ">>> onResume");
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Log.d(TAG, ">>> onPause");
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        Log.d(TAG, ">>> onStop");
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        Log.d(TAG, ">>> onRestart");
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.d(TAG, ">>> onDestroy");
+    }
+}
+```
+
+> **觀察方式**：Android Studio 底部 → **Logcat** 面板 → 搜尋 `LifecycleDemo`。
+> 操作 App（切頁面、按 Home、返回），即時看到每個回呼的執行順序。
+
+### 4-2 Intent：頁面跳轉與資料傳遞
+
+Intent（意圖）是 Android 元件之間的「信差」——告訴系統你想做什麼，系統幫你啟動對應的 Activity。
+
+| 類型 | 說明 | 用途 |
+|------|------|------|
+| **Explicit Intent**（明確意圖） | 指定目標 Activity 的類別名稱 | App 內部頁面跳轉 |
+| **Implicit Intent**（隱含意圖） | 只描述動作，讓系統媒合 | 開瀏覽器、打電話、分享 |
+
+#### Explicit Intent：App 內頁面跳轉
+
+從 MainActivity 跳到 DetailActivity：
+
+```java
+Intent intent = new Intent(this, DetailActivity.class);
+startActivity(intent);
+```
+
+`this` = 從哪裡出發，`DetailActivity.class` = 要去哪裡。
+
+#### 用 putExtra 傳遞資料
+
+跳頁時把資料帶到下一頁，用 key-value 配對：
+
+**送出端**：
+
+```java
+Intent intent = new Intent(this, DetailActivity.class);
+intent.putExtra("SPECIES_NAME", "綠蠵龜");
+intent.putExtra("SPECIES_HABITAT", "珊瑚礁");
+intent.putExtra("SPECIES_DEPTH", 50);
+startActivity(intent);
+```
+
+**接收端**：
+
+```java
+// 在 DetailActivity 的 onCreate 中
+String name = getIntent().getStringExtra("SPECIES_NAME");     // "綠蠵龜"
+String habitat = getIntent().getStringExtra("SPECIES_HABITAT"); // "珊瑚礁"
+int depth = getIntent().getIntExtra("SPECIES_DEPTH", 0);       // 50
+```
+
+#### putExtra 支援的資料型別
+
+| 放入 | 取出 | 注意 |
+|------|------|------|
+| `putExtra(key, "文字")` | `getStringExtra(key)` | 可能為 null，建議加預設值 |
+| `putExtra(key, 123)` | `getIntExtra(key, 預設值)` | 第二參數是找不到時的預設值 |
+| `putExtra(key, 3.14)` | `getDoubleExtra(key, 預設值)` | 同上 |
+| `putExtra(key, true)` | `getBooleanExtra(key, 預設值)` | 同上 |
+
+#### Implicit Intent：開啟外部功能
+
+不指定目標，讓系統自動媒合能處理的 App：
+
+```java
+// 開瀏覽器（查詢中央氣象署）
+Intent webIntent = new Intent(Intent.ACTION_VIEW,
+    Uri.parse("https://www.cwa.gov.tw"));
+startActivity(webIntent);
+
+// 打電話
+Intent callIntent = new Intent(Intent.ACTION_DIAL,
+    Uri.parse("tel:0800000000"));
+startActivity(callIntent);
+
+// 分享文字
+Intent shareIntent = new Intent(Intent.ACTION_SEND);
+shareIntent.setType("text/plain");
+shareIntent.putExtra(Intent.EXTRA_TEXT, "在高雄港看到一隻海豚！");
+startActivity(Intent.createChooser(shareIntent, "分享到..."));
+```
+
+#### AndroidManifest 註冊
+
+新增的 Activity **必須**在 `AndroidManifest.xml` 中註冊：
+
+```xml
+<application ...>
+    <activity android:name=".MainActivity"> ... </activity>
+    <activity android:name=".DetailActivity" />  <!-- 新增這行 -->
+</application>
+```
+
+> Android Studio 用選單 New → Activity 建立時會自動註冊。手動建 class 要自己加。
+
+### 4-3 本節重點整理
+
+| 概念 | 一句話 |
+|------|--------|
+| Activity | App 的一個畫面 |
+| 生命週期 | 系統自動呼叫的 7 個方法，控制畫面從建立到銷毀的過程 |
+| `onCreate` | 最重要——初始化畫面和元件的地方，你已經在用了 |
+| Explicit Intent | 指名道姓跳到某個 Activity |
+| Implicit Intent | 描述動作讓系統媒合（開網頁、打電話） |
+| `putExtra` | Intent 夾帶資料的方式，key-value 配對 |
+| Manifest | 每個 Activity 都要在 AndroidManifest.xml 宣告 |
+
+---
+
+## 五、隨堂練習：生命週期觀察 + Intent 跳轉（40 分鐘）
+
+> **目標**：親手觀察 Activity 生命週期 Log，並實作兩頁跳轉與資料傳遞
+> **繳交**：完成後截圖放在 `week08/` 資料夾，push 到 Fork
+
+### 練習 1：生命週期觀察（15 分鐘）
+
+在你的 W07 專案（或新建專案）中，為 MainActivity 加入 7 個生命週期 Log（參考 4-1 範例程式碼）。
+
+執行 App，**依序操作以下三個場景**，觀察 Logcat 的輸出：
+
+| 步驟 | 操作 | 預期 Log |
+|:----:|------|---------|
+| 1 | 啟動 App | `onCreate → onStart → onResume` |
+| 2 | 按 Home 鍵 | `onPause → onStop` |
+| 3 | 從最近列表回到 App | `onRestart → onStart → onResume` |
+
+**繳交**：Logcat 截圖一張，能看到上述三個場景的 Log（`lifecycle_log.png`）
+
+### 練習 2：兩頁跳轉與資料傳遞（25 分鐘）
+
+建立一個兩頁式的海洋生物查詢：
+
+**Step 1**：新增 DetailActivity（右鍵 → New → Activity → Empty Views Activity）
+
+**Step 2**：在 `activity_main.xml` 加入三個按鈕
+
+```xml
+<LinearLayout
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="24dp"
+    android:gravity="center_horizontal">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="選擇海洋生物"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="24dp" />
+
+    <Button
+        android:id="@+id/btnShark"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:text="鯊魚"
+        android:layout_marginBottom="12dp" />
+
+    <Button
+        android:id="@+id/btnTurtle"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:text="海龜"
+        android:layout_marginBottom="12dp" />
+
+    <Button
+        android:id="@+id/btnDolphin"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:text="海豚" />
+</LinearLayout>
+```
+
+**Step 3**：在 `activity_detail.xml` 放三個 TextView + 返回按鈕
+
+```xml
+<LinearLayout
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="24dp">
+
+    <TextView
+        android:id="@+id/tvName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="28sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="16dp" />
+
+    <TextView
+        android:id="@+id/tvHabitat"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="18sp"
+        android:layout_marginBottom="8dp" />
+
+    <TextView
+        android:id="@+id/tvMove"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="18sp"
+        android:layout_marginBottom="24dp" />
+
+    <Button
+        android:id="@+id/btnBack"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="回列表" />
+</LinearLayout>
+```
+
+**Step 4**：MainActivity 送出 Intent
+
+```java
+// TODO: 為每個按鈕加上 OnClickListener
+// 範例（鯊魚按鈕）：
+findViewById(R.id.btnShark).setOnClickListener(v -> {
+    Intent intent = new Intent(this, DetailActivity.class);
+    intent.putExtra("NAME", "大白鯊");
+    intent.putExtra("HABITAT", "棲息地：深海");
+    intent.putExtra("MOVE", "移動方式：高速衝刺獵食");
+    startActivity(intent);
+});
+
+// TODO: 海龜按鈕（自己填資料）
+// TODO: 海豚按鈕（自己填資料）
+```
+
+**Step 5**：DetailActivity 接收並顯示
+
+```java
+@Override
+protected void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    setContentView(R.layout.activity_detail);
+
+    // TODO: 用 getStringExtra 取出三筆資料，顯示在 TextView 上
+    // TODO: 「回列表」按鈕用 finish() 關閉此頁
+}
+```
+
+**繳交**：App 畫面截圖兩張（`main_page.png`、`detail_page.png`）
+
+### 隨堂練習評量
+
+| 項目 | 通過條件 |
+|------|---------|
+| 生命週期 Log | Logcat 截圖顯示至少 `onCreate`、`onPause`、`onRestart` |
+| Intent 跳轉 | 按鈕能從 MainActivity 跳到 DetailActivity |
+| 資料傳遞 | DetailActivity 正確顯示從 Intent 接收的生物資訊 |
+| 返回功能 | 按「回列表」能回到 MainActivity |
+
+---
+
+## 六、課後作業：海洋生物小百科 Mini APP
 
 > **繳交期限**：W09 期中考前（4/23）
 > **繳交方式**：將 Android 專案放在 `week08/` 內，push 到 Fork（同一個 PR）
@@ -571,17 +927,16 @@ public class DetailActivity extends AppCompatActivity {
 
 ---
 
-## 評分標準
+## 七、驗收標準（通過／不通過）
 
-| 項目 | 配分 | 說明 |
-|------|------|------|
-| 專案可執行 | 25% | Build 成功並正常執行 |
-| UI 佈局完整 | 25% | 標題、按鈕、圖片、文字資訊、搜尋框 |
-| 互動功能正確 | 25% | 按鈕切換 + 搜尋功能正確運作 |
-| 程式碼品質 | 15% | 使用 Interface 共用事件處理、命名清晰 |
-| 創意加分 | 10% | 額外功能、更多生物、美化 UI |
+| 項目 | 通過條件 |
+|------|----------|
+| 專案可執行 | Build 成功並正常執行 |
+| UI 佈局完整 | 標題、按鈕、圖片、文字資訊、搜尋框皆呈現 |
+| 互動功能正確 | 按鈕切換 + 搜尋功能正確運作 |
+| 程式碼品質 | 使用 Interface 共用事件處理、命名清晰 |
 
-### 加分項目（選做）
+### 額外挑戰（選做，不影響通過與否）
 
 - 使用 `ScrollView` 讓內容可捲動
 - 使用 `CardView` 美化資訊卡片
@@ -591,7 +946,7 @@ public class DetailActivity extends AppCompatActivity {
 
 ---
 
-## 繳交方式
+## 八、繳交方式
 
 1. 在你的 Fork 中建立 `week08/` 資料夾
 2. 將整個 Android 專案放入（至少包含 `app/src/main/` 下的 java 和 res 資料夾）
@@ -600,7 +955,7 @@ public class DetailActivity extends AppCompatActivity {
 
 ---
 
-## 與 Java OOP 的完整對照
+## 九、與 Java OOP 的完整對照
 
 | W03-W05 Java OOP | W07-W08 Android APP |
 |-------------------|---------------------|
