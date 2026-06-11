@@ -7,6 +7,7 @@
 
 <img src="https://github.com/user-attachments/assets/59bc57d4-21b4-480b-8f15-3a7fc1929414" />
 ## 2 分數計算
+<img src="https://github.com/user-attachments/assets/62cd3127-054d-48f4-aa4a-79d0970e3e26" />
 
 
 
