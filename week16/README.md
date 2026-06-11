@@ -1,11 +1,11 @@
 # 海洋跑酷小遊戲
 <div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/pychang-ai/W16_PowerPlayer/blob/main/Gemini_Generated_Image_.png?raw=true" />
+<img src="" />
 </div>
 
 # 系統功能
 ## 1 開新遊戲
-<img src="https://github.com/pychang-ai/W16_ChikawaCar/blob/main/1_newgame.png?raw=true" />
+<img src="" />
 
 
 ## 2 存檔遊戲
