@@ -6,6 +6,9 @@
 ## 1 開新遊戲
 
 <img src="https://github.com/user-attachments/assets/59bc57d4-21b4-480b-8f15-3a7fc1929414" />
+## 2 分數計算
+
+
 
 ## 作者資訊：
 
